@@ -14,8 +14,8 @@ internal struct HackerNewsWebpage {
     /// Lists stories from the webpage
     /// - Returns: stories from the webpage
     public func listStories() throws -> [Story] {
-        let rows: Elements = try doc.getElementsByClass("athing")
-        return try rows.map { try parseStory(fromRow: $0)}
+        let titleRows: Elements = try doc.getElementsByClass("athing")
+        return try titleRows.map { try parseStory(fromRow: $0)}
     }
     
     /// Parses a story from a title table row on the webpage
@@ -27,6 +27,11 @@ internal struct HackerNewsWebpage {
         let title = try titleLine.getElementsByTag("a").first()!.text(trimAndNormaliseWhitespace: true)
         let url = URL(string: try titleLine.getElementsByTag("a").attr("href"))
         
-        return Story(id: id, title: title, url: url, author: nil, points: nil, commentCount: nil)
+        let subline = try row.nextElementSibling()!
+        let author = try subline.getElementsByClass("hnuser").first()?.text(trimAndNormaliseWhitespace: true)
+        
+        let points = try subline.getElementsByClass("score").first()?.text().toInt()
+        let commentCount = try subline.getElementsByTag("a").last()?.text().toInt()
+        return Story(id: id, title: title, url: url, author: author, points: points, commentCount: commentCount, text: nil)
     }
 }
